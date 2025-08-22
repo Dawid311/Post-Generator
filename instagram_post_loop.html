@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Instagram Post - 2s Loop + 30s Audio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet">
+  <style>
+    :root { --gold:#ffd700; }
+    body { margin:0; font-family:'Pirata One',cursive; background:linear-gradient(135deg,#232526 0%,#1e2a38 100%); color:#fff; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:24px; padding:36px 20px 48px; box-sizing:border-box; }
+    h1 { font-size:1.4rem; letter-spacing:2px; color:var(--gold); margin:0; text-shadow:0 2px 12px #000; text-align:center; }
+    .card { position:relative; width:440px; max-width:95vw; background:rgba(30,40,50,.97); border-radius:18px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,215,0,0.1); }
+    .hero-image { width:100%; height:260px; background-size:cover; background-position:center; background-repeat:no-repeat; position:relative; filter:brightness(.85) grayscale(.1); }
+    .heute-badge { position:absolute; top:15px; right:15px; background:linear-gradient(45deg, #ff6b6b, #ffd93d); color:#000; font-size:0.9rem; font-weight:bold; padding:8px 16px; border-radius:20px; text-transform:uppercase; letter-spacing:1px; box-shadow:0 4px 12px rgba(255,107,107,0.4); animation: pulse 2s infinite; z-index:10; }
+    @keyframes pulse { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+    .card-content { padding:32px 24px 24px; text-align:center; position:relative; }
+    .title { font-size:2.4rem; color:var(--gold); letter-spacing:2px; margin:0 0 12px; text-shadow:0 2px 16px #000a; display:flex; align-items:center; justify-content:center; gap:15px; }
+    .title .music-note { font-size:1.8rem; animation: pulse 1.5s infinite; }
+    .subtitle { font-size:1.3rem; margin:0 0 18px; text-shadow:0 2px 8px #ffd70090; }
+    .details { font-size:1.1rem; color:#b8c6db; letter-spacing:1px; margin:0 0 18px; position:relative; }
+    .details::before { content:"⏰"; margin-right:8px; color:var(--gold); animation: pulse 2s infinite; }
+    .cta { display:inline-block; background:linear-gradient(90deg,var(--gold),#fff); color:#232526; font-size:1.25rem; padding:12px 34px; border-radius:32px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 16px #ffd700a0, 0 0 20px rgba(255,215,0,0.3); position:relative; }
+    .cta::before { content:"🎸"; margin-right:8px; animation: pulse 1.8s infinite; }
+    .live-indicator { position:absolute; top:-5px; right:-5px; width:12px; height:12px; background:#ff4757; border-radius:50%; animation: blink 1s infinite; }
+    @keyframes blink { 0%, 50% { opacity:1; } 51%, 100% { opacity:0.3; } }
+    @keyframes fadeIn {0%{opacity:0;transform:translateY(24px);}100%{opacity:1;transform:translateY(0);}}
+    .status { font-size:.8rem; letter-spacing:1px; min-height:1rem; }
+    .hidden { display:none!important; }
+    .result { display:flex; flex-direction:column; align-items:center; gap:8px; }
+    a.dl { background:#4CAF50; border:2px solid #4CAF50; color:white; padding:12px 24px; border-radius:12px; text-decoration:none; letter-spacing:1px; font-size:1rem; transition:.25s; }
+    a.dl:hover { background:#45a049; box-shadow:0 0 12px #4CAF50; }
+    .previewWrap { display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .note { font-size:.6rem; opacity:.55; text-align:center; max-width:520px; line-height:1.3; }
+    .spinner { width:52px; height:52px; border:5px solid #ffffff22; border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .progress-container { width:100%; max-width:400px; background:#16212b; border-radius:10px; padding:8px; margin:16px 0; }
+    .progress-bar { height:12px; background:linear-gradient(90deg,var(--gold),#fff); border-radius:6px; transition:width 0.3s ease; width:0%; }
+    .progress-text { color:var(--gold); font-size:0.9rem; text-align:center; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <h1>Instagram Post - 2s Loop + 30s Audio</h1>
+  <div class="status" id="status">Lade...</div>
+  <button onclick="location.reload()" style="background:#666; color:white; border:none; padding:8px 16px; border-radius:5px; margin:10px; cursor:pointer; font-size:12px;">🔄 Neu starten</button>
+  <div class="card" id="captureTarget">
+    <div class="hero-image" id="heroImg" style="background-image: url('_ARC6946.jpg');">
+      <div class="heute-badge">🔥 HEUTE 🔥</div>
+    </div>
+    <div class="card-content">
+      <div class="title">
+        <span class="music-note">🎵</span>
+        <span>KONZERT</span>
+        <span class="music-note">🎵</span>
+      </div>
+      <div class="subtitle">22.08 • 19:00 Uhr</div>
+      <div class="details">Katys Garage, Dresden Neustadt<br>Live-Musik & Atmosphäre</div>
+      <div class="cta">
+        Sei dabei!
+        <div class="live-indicator"></div>
+      </div>
+    </div>
+  </div>
+  <div class="spinner" id="spinner"></div>
+  <div class="progress-container hidden" id="progressContainer">
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="progress-text" id="progressText">0%</div>
+  </div>
+  <div class="result hidden" id="result">
+    <div class="previewWrap">
+      <video id="videoPreview" controls style="max-width:260px; border:2px solid var(--gold); border-radius:12px;" autoplay muted loop></video>
+    </div>
+    <a class="dl" id="dlMp4" download="instagram_post_static.mp4">🎵 Download MP4 Statisch + Audio (30s)</a>
+    <div style="margin-top:12px;">
+      <audio id="syncAudio" controls style="width:100%; max-width:280px;">
+        <source src="Katze_30sek.mp3" type="audio/mpeg">
+        Audio-Track (30s komplett)
+      </audio>
+    </div>
+  </div>
+  <p class="note">Export startet automatisch. Statisches Design mit blinkenden Symbolen (🔥🎵🎸⏰) über 30s Audio-Track. Keine Text-Animation. Alles passiert lokal im Browser.</p>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    // GIF Worker URL
+    function getGifWorkerURL() {
+      const workerCode = `
+        importScripts('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js');
+      `;
+      return URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' }));
+    }
+
+    async function autoExport(){
+      const statusEl=document.getElementById('status');
+      const spinner=document.getElementById('spinner');
+      const progressContainer=document.getElementById('progressContainer');
+      const progressBar=document.getElementById('progressBar');
+      const progressText=document.getElementById('progressText');
+      const result=document.getElementById('result');
+      const dlMp4=document.getElementById('dlMp4');
+      const target=document.getElementById('captureTarget');
+      
+      try {
+        // Statisches Design ohne Text-Animation - nur Symbol-Blinken
+        statusEl.textContent='Statisches Design wird erstellt...';
+        await (document.fonts?.ready||Promise.resolve());
+        await new Promise(r=>setTimeout(r,500));
+        
+        const W=1080,H=1350; 
+        const canvas=document.createElement('canvas'); 
+        canvas.width=W; canvas.height=H; 
+        const ctx=canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        // Progress Bar anzeigen
+        spinner.classList.add('hidden');
+        progressContainer.classList.remove('hidden');
+        statusEl.textContent='Statisches Design wird erfasst...';
+        
+        // Nur 1 Frame erfassen - kein Text kommt auf, nur Symbole blinken
+        const frames = [];
+        
+        // Ein einziges statisches Frame erfassen
+        progressBar.style.width = '50%';
+        progressText.textContent = '50% - Statisches Design';
+        
+        // Frame erfassen
+        const snapshot = await html2canvas(target, {
+          backgroundColor: null,
+          scale: 3,
+          useCORS: true,
+          allowTaint: true,
+          logging: false
+        });
+        
+        // Frame auf Canvas zeichnen
+        const grd=ctx.createLinearGradient(0,0,W,H); 
+        grd.addColorStop(0,'#232526'); 
+        grd.addColorStop(1,'#1e2a38'); 
+        ctx.fillStyle=grd; 
+        ctx.fillRect(0,0,W,H);
+        
+        const sW = snapshot.width;
+        const sH = snapshot.height;
+        const targetFill = 0.7;
+        const scale = Math.min((W * 0.95) / sW, (H * targetFill) / sH);
+        const drawW = sW * scale;
+        const drawH = sH * scale;
+        const dx = (W - drawW) / 2;
+        const dy = (H - drawH) / 2;
+        
+        ctx.drawImage(snapshot, dx, dy, drawW, drawH);
+        
+        // Dieses eine Frame speichern (wird geloopt)
+        frames.push(ctx.getImageData(0, 0, W, H));
+        
+        statusEl.textContent = 'Statisches Video mit Audio wird erstellt...';
+        
+        // Video-Stream erstellen (30 FPS für Playback)
+        const videoCanvas = document.createElement('canvas');
+        videoCanvas.width = W;
+        videoCanvas.height = H;
+        const videoCtx = videoCanvas.getContext('2d');
+        const stream = videoCanvas.captureStream(30); // 30 FPS Playback
+        
+        // Audio-Element
+        const audioElement = new Audio('Katze_30sek.mp3');
+        audioElement.currentTime = 0;
+        
+        let videoChunks = [];
+        let mediaRecorder;
+        
+        try {
+          // Audio-Stream hinzufügen
+          const audioContext = new AudioContext();
+          const audioSource = audioContext.createMediaElementSource(audioElement);
+          const audioDestination = audioContext.createMediaStreamDestination();
+          audioSource.connect(audioDestination);
+          
+          // Video + Audio kombinieren
+          const combinedStream = new MediaStream([
+            ...stream.getVideoTracks(),
+            ...audioDestination.stream.getAudioTracks()
+          ]);
+          
+          mediaRecorder = new MediaRecorder(combinedStream, {
+            mimeType: 'video/webm',
+            videoBitsPerSecond: 5000000
+          });
+          
+          mediaRecorder.ondataavailable = e => videoChunks.push(e.data);
+          mediaRecorder.onstop = () => {
+            const videoBlob = new Blob(videoChunks, { type: 'video/webm' });
+            const videoUrl = URL.createObjectURL(videoBlob);
+            dlMp4.href = videoUrl;
+            
+            const videoPreview = document.getElementById('videoPreview');
+            videoPreview.src = videoUrl;
+            
+            result.classList.remove('hidden'); 
+            progressContainer.classList.add('hidden');
+            statusEl.textContent='30s Statisches Video mit Audio fertig!';
+            
+            setTimeout(()=>{ dlMp4.click(); },400);
+          };
+          
+          // Recording starten
+          mediaRecorder.start();
+          audioElement.play();
+          
+        } catch (e) {
+          console.warn('Audio nicht verfügbar:', e);
+        }
+        
+        // 30 Sekunden lang das gleiche statische Frame zeigen
+        const totalDuration = 30000; // 30 Sekunden
+        const startTime = Date.now();
+        
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / totalDuration, 1) * 50 + 50; // 50-100%
+          
+          progressBar.style.width = progress + '%';
+          progressText.textContent = `${Math.round(progress)}% - ${(elapsed/1000).toFixed(1)}s / 30s`;
+          statusEl.textContent = `Statisches Video: ${(elapsed/1000).toFixed(1)}s / 30s`;
+          
+          if (elapsed < totalDuration) {
+            // Immer das gleiche statische Frame verwenden
+            const frameData = frames[0];
+            videoCtx.putImageData(frameData, 0, 0);
+            
+            requestAnimationFrame(animate);
+          } else {
+            // Nach 30s stoppen
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+              mediaRecorder.stop();
+              audioElement.pause();
+            }
+          }
+        };
+        
+        animate();
+        
+      } catch(e){ 
+        console.error(e); 
+        statusEl.textContent='Fehler: '+e.message; 
+        spinner.classList.add('hidden'); 
+        progressContainer.classList.add('hidden');
+      }
+    }
+    
+    window.addEventListener('load', ()=>{ setTimeout(autoExport,150); });
+  </script>
+</body>
+</html>
