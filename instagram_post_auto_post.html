@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Instagram Post Auto GIF</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet">
+  <style>
+    :root { --gold:#ffd700; }
+    body { margin:0; font-family:'Pirata One',cursive; background:linear-gradient(135deg,#232526 0%,#1e2a38 100%); color:#fff; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:24px; padding:36px 20px 48px; box-sizing:border-box; }
+    h1 { font-size:1.4rem; letter-spacing:2px; color:var(--gold); margin:0; text-shadow:0 2px 12px #000; text-align:center; }
+    .card { position:relative; width:440px; max-width:95vw; background:rgba(30,40,50,.97); border:3px solid var(--gold); border-radius:18px; overflow:hidden; box-shadow:0 8px 32px #000a,0 0 0 8px #ffd70080; }
+    .card .hero-image { width:100%; height:260px; background-size:cover; background-position:center; background-repeat:no-repeat; display:block; filter:brightness(.85) grayscale(.1); border-bottom:2px solid var(--gold); }
+    .card-content { padding:32px 24px 24px; text-align:center; }
+    .title { font-size:2.4rem; color:var(--gold); letter-spacing:2px; margin:0 0 12px; text-shadow:0 2px 16px #000a; animation: fadeIn 1.2s ease-out forwards; }
+    .subtitle { font-size:1.3rem; margin:0 0 18px; text-shadow:0 2px 8px #ffd70090; animation: fadeIn 2s ease-out forwards; animation-delay: 0.5s; opacity: 0; }
+    .details { font-size:1.1rem; color:#b8c6db; letter-spacing:1px; margin:0 0 18px; animation: fadeIn 2s ease-out forwards; animation-delay: 1s; opacity: 0; }
+    .cta { display:inline-block; background:linear-gradient(90deg,var(--gold),#fff); color:#232526; font-size:1.25rem; padding:12px 34px; border-radius:32px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 16px #ffd700a0; animation: fadeIn 1s ease-out forwards; animation-delay: 2.5s; opacity: 0; }
+    @keyframes fadeIn {0%{opacity:0;transform:translateY(24px);}100%{opacity:1;transform:translateY(0);}}
+    @keyframes pulse {0%,100%{box-shadow:0 2px 16px #ffd700a0;}50%{box-shadow:0 2px 36px #fff;}}
+    .status { font-size:.8rem; letter-spacing:1px; min-height:1rem; }
+    .hidden { display:none!important; }
+    .result { display:flex; flex-direction:column; align-items:center; gap:8px; }
+    a.dl { background:#16212b; border:2px solid var(--gold); color:var(--gold); padding:10px 22px; border-radius:12px; text-decoration:none; letter-spacing:1px; font-size:1rem; transition:.25s; }
+    a.dl:hover { background:var(--gold); color:#1e2730; box-shadow:0 0 12px var(--gold); }
+    .previewWrap { display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .note { font-size:.6rem; opacity:.55; text-align:center; max-width:520px; line-height:1.3; }
+    .spinner { width:52px; height:52px; border:5px solid #ffffff22; border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <h1>Instagram Post (Auto GIF Export)</h1>
+  <div class="status" id="status">Lade...</div>
+  <div class="card" id="captureTarget">
+    <div class="hero-image" id="heroImg" style="background-image: url('_ARC6946.jpg');"></div>
+    <div class="card-content">
+      <div class="title">Konzert am 22.08</div>
+      <div class="subtitle">Katys Garage, Dresden Neustadt</div>
+      <div class="details">Start: 19:00 Uhr<br>Live-Musik & Atmosphäre</div>
+      <div class="cta">Sei dabei!</div>
+    </div>
+  </div>
+  <div class="spinner" id="spinner"></div>
+  <div class="result hidden" id="result">
+    <div class="previewWrap">
+      <img id="gifPreview" alt="GIF Vorschau" style="max-width:260px; border:2px solid var(--gold); border-radius:12px; image-rendering:-webkit-optimize-contrast;" />
+    </div>
+    <a class="dl" id="dlGif" download="instagram_post.gif">Download GIF</a>
+    <a class="dl" id="dlPng" download="instagram_post.png" style="margin-top:8px;">Download PNG</a>
+  </div>
+  <p class="note">Export startet automatisch nach dem Laden (&lt;5s). GIF enthält Animation (~3s) + 1s Standbild. Alles passiert lokal.</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    const GIF_WORKER_SOURCES=[
+      'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js',
+      'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js',
+      'https://unpkg.com/gif.js@0.2.0/dist/gif.worker.js'
+    ];
+    let __gifWorkerURLPromise;function getGifWorkerURL(){ if(__gifWorkerURLPromise) return __gifWorkerURLPromise; __gifWorkerURLPromise=(async()=>{ for(const src of GIF_WORKER_SOURCES){ try{ const r=await fetch(src,{cache:'force-cache'}); if(!r.ok) continue; const code=await r.text(); return URL.createObjectURL(new Blob([code],{type:'application/javascript'})); }catch(e){ continue; } } throw new Error('gif.worker.js nicht ladbar'); })(); return __gifWorkerURLPromise; }
+
+    async function autoExport(){
+      const statusEl=document.getElementById('status');
+      const spinner=document.getElementById('spinner');
+      const result=document.getElementById('result');
+      const gifPreview=document.getElementById('gifPreview');
+      const dl=document.getElementById('dlGif');
+      const dlPng=document.getElementById('dlPng');
+      const target=document.getElementById('captureTarget');
+      const heroDiv=document.getElementById('heroImg');
+      try {
+        statusEl.textContent='Warte auf Schrift & Bild...';
+        await (document.fonts?.ready||Promise.resolve());
+        // Background-image braucht kein Load-Event
+        await new Promise(r=>setTimeout(r,100)); // Kurze Pause für Rendering
+        
+        // Manuelle Frame-Animation statt CSS-Keyframes
+        const fadeEls = [
+          {el: target.querySelector('.title'), delay:0, dur:1.2},
+          {el: target.querySelector('.subtitle'), delay:0.5, dur:2.0},
+          {el: target.querySelector('.details'), delay:1.0, dur:2.0}
+        ];
+        fadeEls.forEach(f=>{ 
+          if(f.el){ 
+            f.el.style.animation='none'; 
+            f.el.style.opacity='0'; 
+            f.el.style.transform='translateY(24px)'; 
+            f.el.style.transition='none';
+          } 
+        });
+        const ctaEl = target.querySelector('.cta'); 
+        if(ctaEl) {
+          ctaEl.style.animation='none';
+          ctaEl.style.opacity='0';
+          ctaEl.style.transition='none';
+        }
+
+        const fps=12; const animTotal=3.5; const hold=1; const delay=1000/fps; const holdFrames=Math.round(hold*fps);
+        const frames=Math.round(animTotal*fps);
+        
+        const W=1080,H=1350; const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H; const ctx=canvas.getContext('2d');
+        let finalCanvas; // Für PNG Export speichern
+        const workerScript=await getGifWorkerURL(); try{ if(window.GIF && GIF.defaults) GIF.defaults.workerScript=workerScript; }catch(_){}
+        const gif=new GIF({workers:2,quality:10,width:W,height:H,workerScript});
+        statusEl.textContent='Aufnahme...';
+        
+        let lastSnap;
+        for (let i=0;i<=frames;i++) {
+          const t = (i/frames)*animTotal; // Sekunden seit Start
+          
+          // Update Fade Elemente basierend auf Zeit
+          fadeEls.forEach(f=>{
+            if(!f.el) return;
+            const local = (t - f.delay);
+            let p = local / f.dur;
+            if(p < 0) p = 0; if(p>1) p=1;
+            const easing = p<1 ? (1 - Math.pow(1-p,3)) : 1; // cubicOut
+            f.el.style.opacity = easing.toFixed(4);
+            const ty = 24 * (1-easing);
+            f.el.style.transform = `translateY(${ty.toFixed(2)}px)`;
+          });
+          // CTA erst einblenden wenn Titel > 60% sichtbar
+          if(ctaEl){ 
+            const titleOp = parseFloat(fadeEls[0].el?.style.opacity||'0'); 
+            ctaEl.style.opacity = titleOp>0.6? '1':'0'; 
+          }
+          
+          // Kurze Pause für Style-Stabilisierung
+          await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+          
+          // HTML2CANVAS für komplette HTML-Kopie (perfekt mit background-image)
+          const snapshot = await html2canvas(target, {
+            backgroundColor: null,
+            scale: 2,
+            useCORS: true,
+            allowTaint: true
+          });
+          
+          // Hintergrund-Gradient
+          const grd=ctx.createLinearGradient(0,0,W,H); 
+          grd.addColorStop(0,'#232526'); 
+          grd.addColorStop(1,'#1e2a38'); 
+          ctx.fillStyle=grd; 
+          ctx.fillRect(0,0,W,H);
+          
+          // Snapshot zentral platzieren für Story-Format
+          const sW = snapshot.width;
+          const sH = snapshot.height;
+          const targetFill = 0.7; // 70% der Höhe für Story
+          const scale = Math.min((W * 0.95) / sW, (H * targetFill) / sH);
+          const drawW = sW * scale;
+          const drawH = sH * scale;
+          const dx = (W - drawW) / 2;
+          const dy = (H - drawH) / 2;
+          
+          // Komplettes HTML2Canvas zeichnen (background-image funktioniert perfekt)
+          ctx.drawImage(snapshot, dx, dy, drawW, drawH);
+          
+          gif.addFrame(ctx,{copy:true,delay:Math.round(delay)});
+          statusEl.textContent=`Frame ${i+1}/${frames}`;
+        }
+        
+        // Hold-Frames (finale Animation hält an)
+        for(let h=0; h<holdFrames; h++){
+          gif.addFrame(ctx,{copy:true,delay:Math.round(delay)});
+        }
+        
+        // Finale Canvas für PNG Export speichern
+        finalCanvas = document.createElement('canvas');
+        finalCanvas.width = W;
+        finalCanvas.height = H;
+        const finalCtx = finalCanvas.getContext('2d');
+        finalCtx.drawImage(canvas, 0, 0);
+        statusEl.textContent='Render...';
+        gif.on('finished',blob=>{ 
+          const url=URL.createObjectURL(blob); 
+          gifPreview.src=url; 
+          dl.href=url; 
+          
+          // PNG Download vorbereiten
+          if(finalCanvas) {
+            finalCanvas.toBlob(pngBlob => {
+              const pngUrl = URL.createObjectURL(pngBlob);
+              dlPng.href = pngUrl;
+            }, 'image/png', 1.0);
+          }
+          
+          result.classList.remove('hidden'); 
+          spinner.classList.add('hidden'); 
+          statusEl.textContent='Fertig'; 
+          setTimeout(()=>{ dl.click(); },400); 
+        });
+        gif.render();
+      } catch(e){ console.error(e); document.getElementById('status').textContent='Fehler: '+e.message; spinner.classList.add('hidden'); }
+    }
+    window.addEventListener('load', ()=>{ setTimeout(autoExport,150); });
+  </script>
+</body>
+</html>
