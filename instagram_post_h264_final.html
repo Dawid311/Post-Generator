@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instagram Post - MP4 H.264 Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet">
+  <style>
+    :root { --gold:#ffd700; }
+    body { margin:0; font-family:'Pirata One',cursive; background:linear-gradient(135deg,#232526 0%,#1e2a38 100%); color:#fff; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:24px; padding:36px 20px 48px; box-sizing:border-box; }
+    h1 { font-size:1.4rem; letter-spacing:2px; color:var(--gold); margin:0; text-shadow:0 2px 12px #000; text-align:center; }
+    .card { position:relative; width:440px; max-width:95vw; background:rgba(30,40,50,.97); border-radius:18px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,215,0,0.1); }
+    .hero-image { width:100%; height:260px; background-size:cover; background-position:center; background-repeat:no-repeat; position:relative; filter:brightness(.85) grayscale(.1); background-image: url('_ARC6946.jpg'); }
+    .heute-badge { position:absolute; top:15px; right:15px; background:linear-gradient(45deg, #ff6b6b, #ffd93d); color:#000; font-size:0.9rem; font-weight:bold; padding:8px 16px; border-radius:20px; text-transform:uppercase; letter-spacing:1px; box-shadow:0 4px 12px rgba(255,107,107,0.4); z-index:10; transition: transform 0.3s ease; }
+    .card-content { padding:32px 24px 24px; text-align:center; position:relative; }
+    .title { font-size:2.4rem; color:var(--gold); letter-spacing:2px; margin:0 0 12px; text-shadow:0 2px 16px #000a; display:flex; align-items:center; justify-content:center; gap:15px; }
+    .title .music-note { font-size:1.8rem; }
+    .subtitle { font-size:1.3rem; margin:0 0 18px; text-shadow:0 2px 8px #ffd70090; }
+    .details { font-size:1.1rem; color:#b8c6db; letter-spacing:1px; margin:0 0 18px; position:relative; }
+    .details::before { content:"⏰"; margin-right:8px; color:var(--gold); }
+    .cta { display:inline-block; background:linear-gradient(90deg,var(--gold),#fff); color:#232526; font-size:1.25rem; padding:12px 34px; border-radius:32px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 16px #ffd700a0, 0 0 20px rgba(255,215,0,0.3); position:relative; }
+    .cta::before { content:"🎸"; margin-right:8px; }
+    .live-indicator { position:absolute; top:-5px; right:-5px; width:12px; height:12px; background:#ff4757; border-radius:50%; transition: opacity 0.3s ease; }
+    
+    .status { font-size:.8rem; letter-spacing:1px; min-height:1rem; color:var(--gold); }
+    .hidden { display:none!important; }
+    .result { display:flex; flex-direction:column; align-items:center; gap:8px; }
+    a.dl { background:#4CAF50; border:2px solid #4CAF50; color:white; padding:12px 24px; border-radius:12px; text-decoration:none; letter-spacing:1px; font-size:1rem; transition:.25s; }
+    a.dl:hover { background:#45a049; box-shadow:0 0 12px #4CAF50; }
+    .previewWrap { display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .note { font-size:.6rem; opacity:.55; text-align:center; max-width:520px; line-height:1.3; }
+    .spinner { width:52px; height:52px; border:5px solid #ffffff22; border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .progress-container { width:100%; max-width:400px; background:#16212b; border-radius:10px; padding:8px; margin:16px 0; }
+    .progress-bar { height:12px; background:linear-gradient(90deg,var(--gold),#fff); border-radius:6px; transition:width 0.3s ease; width:0%; }
+    .progress-text { color:var(--gold); font-size:0.9rem; text-align:center; margin-top:8px; }
+    .controls { display:flex; gap:10px; margin:10px; }
+    .btn { background:#666; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; font-size:12px; transition:.25s; }
+    .btn:hover { background:#555; }
+    .btn.start { background:#4CAF50; }
+    .btn.start:hover { background:#45a049; }
+    .btn.force { background:#ff6b6b; }
+    .btn.force:hover { background:#ff5252; }
+    .format-info { background:rgba(255,215,0,0.1); border:1px solid var(--gold); padding:8px; border-radius:8px; font-size:0.7rem; margin:10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Instagram Post - H.264 MP4 Generator</h1>
+  <div class="status" id="status">Bereit - Klicken Sie START!</div>
+  <div class="format-info">
+    📱 Erstellt animiertes Instagram MP4 - exakt 4 Sekunden (ohne Audio)
+  </div>
+  <div class="controls">
+  <button class="btn start" id="startBtn" onclick="startExport()">🎬 START - Animiertes MP4 (4s)</button>
+    <button class="btn" onclick="location.reload()">🔄 Neu starten</button>
+    <button class="btn force" onclick="forceRestart()">⚠️ Force Reset</button>
+  </div>
+  
+  <div class="card" id="captureTarget">
+    <div class="hero-image">
+      <div class="heute-badge" id="badge">🔥 HEUTE 🔥</div>
+    </div>
+    <div class="card-content">
+      <div class="title">
+        <span class="music-note">🎵</span>
+        <span>KONZERT</span>
+        <span class="music-note">🎵</span>
+      </div>
+      <div class="subtitle">22.08 • 19:00 Uhr</div>
+      <div class="details">Katys Garage, Dresden Neustadt<br>Live-Musik & Atmosphäre</div>
+      <div class="cta">
+        Sei dabei!
+        <div class="live-indicator" id="indicator"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="spinner" id="spinner"></div>
+  <div class="progress-container hidden" id="progressContainer">
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="progress-text" id="progressText">0%</div>
+  </div>
+  
+  <div class="result hidden" id="result">
+    <div class="previewWrap">
+      <img id="gifPreview" style="max-width:260px; border:2px solid var(--gold); border-radius:12px;" />
+      <video id="videoPreview" controls style="max-width:260px; border:2px solid var(--gold); border-radius:12px; margin-top:10px;" muted></video>
+      <div style="margin-top:8px; font-size:0.7rem; opacity:0.7;">
+        <span id="videoInfo">Video-Info wird geladen...</span>
+      </div>
+    </div>
+    <a class="dl" id="dlGif" download="instagram_post_frame.png">🎨 Download Animation Frame</a>
+    <a class="dl" id="dlMp4" download="instagram_post_4s.mp4" style="margin-top:8px;">📱 Download Instagram MP4 (H.264)</a>
+    <div style="margin-top:12px;">
+      <audio id="syncAudio" controls style="width:100%; max-width:280px;">
+        <source src="Katze_30sek.mp3" type="audio/mpeg">
+    Audio-Track
+      </audio>
+    </div>
+  </div>
+  <p class="note">Erstellt Instagram-kompatibles H.264 MP4 - exakt 4 Sekunden für perfekten Upload!</p>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    let isRecording = false;
+    let recordingStartTime = 0;
+    let mediaRecorder = null;
+    let recordingTimer = null;
+    
+    function startExport() {
+      if (isRecording) return;
+      
+      const startBtn = document.getElementById('startBtn');
+      const statusEl = document.getElementById('status');
+      
+      startBtn.style.display = 'none';
+      statusEl.textContent = 'Wird gestartet...';
+      isRecording = true;
+      
+      setTimeout(autoExport, 100);
+    }
+    
+    async function autoExport(){
+      const statusEl=document.getElementById('status');
+      const spinner=document.getElementById('spinner');
+      const progressContainer=document.getElementById('progressContainer');
+      const progressBar=document.getElementById('progressBar');
+      const progressText=document.getElementById('progressText');
+      const result=document.getElementById('result');
+      const dlGif=document.getElementById('dlGif');
+      const dlMp4=document.getElementById('dlMp4');
+      const target=document.getElementById('captureTarget');
+      const gifPreview=document.getElementById('gifPreview');
+      const videoPreview=document.getElementById('videoPreview');
+      
+      try {
+        statusEl.textContent='Vorbereitung...';
+        await (document.fonts?.ready||Promise.resolve());
+        await new Promise(r=>setTimeout(r,500));
+        
+        // Progress Bar anzeigen
+        spinner.classList.add('hidden');
+        progressContainer.classList.remove('hidden');
+        
+        // SCHRITT 1: Frame erfassen
+        progressBar.style.width = '20%';
+        progressText.textContent = '20% - Frame wird erfasst...';
+        statusEl.textContent = 'Animation Frame wird erfasst...';
+        
+        const canvas = await html2canvas(target, {
+          backgroundColor: null,
+          scale: 2.0,
+          useCORS: true,
+          allowTaint: true,
+          logging: false
+        });
+        
+        // Frame als PNG verfügbar machen
+        canvas.toBlob(function(blob) {
+          const gifUrl = URL.createObjectURL(blob);
+          gifPreview.src = gifUrl;
+          dlGif.href = gifUrl;
+        }, 'image/png');
+        
+        progressBar.style.width = '30%';
+        progressText.textContent = '30% - Instagram MP4 wird erstellt...';
+        statusEl.textContent = 'Instagram-kompatibles MP4 wird erstellt...';
+        
+        // SCHRITT 2: Instagram MP4 erstellen
+        await createInstagramMP4(canvas);
+        
+      } catch(e){ 
+        console.error(e); 
+        statusEl.textContent='Fehler: '+e.message; 
+        spinner.classList.add('hidden'); 
+        progressContainer.classList.add('hidden');
+        isRecording = false;
+      }
+    }
+    
+    async function createInstagramMP4(frameCanvas) {
+      const statusEl=document.getElementById('status');
+      const progressBar=document.getElementById('progressBar');
+      const progressText=document.getElementById('progressText');
+      const result=document.getElementById('result');
+      const dlMp4=document.getElementById('dlMp4');
+      const videoPreview=document.getElementById('videoPreview');
+      const videoInfo=document.getElementById('videoInfo');
+      const progressContainer=document.getElementById('progressContainer');
+      const badge=document.getElementById('badge');
+      const indicator=document.getElementById('indicator');
+  const targetEl=document.getElementById('captureTarget');
+      
+      try {
+        // Instagram-Format: 1080x1350 (4:5 Ratio)
+        const W = 1080, H = 1350;
+        const videoCanvas = document.createElement('canvas');
+        videoCanvas.width = W;
+        videoCanvas.height = H;
+        const videoCtx = videoCanvas.getContext('2d');
+        
+        videoCtx.imageSmoothingEnabled = true;
+        videoCtx.imageSmoothingQuality = 'high';
+        
+        const stream = videoCanvas.captureStream(60); // 60 FPS für flüssige Animation
+        let videoChunks = [];
+        let audioElement;
+
+        // Canvas-Positionen für Symbole (aus DOM-Layout abgeleitet)
+        let indicatorCanvasPos = null; // { x, y, r } in frameCanvas-Koordinaten
+        let badgeCanvasRect = null;    // { x, y, w, h } in frameCanvas-Koordinaten
+        try {
+          const tRect = targetEl.getBoundingClientRect();
+          const iRect = indicator.getBoundingClientRect();
+          const scaleX = frameCanvas.width / tRect.width;
+          const scaleY = frameCanvas.height / tRect.height;
+          const relX = (iRect.left + iRect.width / 2) - tRect.left; // Mittelpunkt relativ zum Target
+          const relY = (iRect.top + iRect.height / 2) - tRect.top;
+          const radius = Math.max(iRect.width, iRect.height) * 0.6; // etwas größer für Sichtbarkeit
+          indicatorCanvasPos = {
+            x: relX * scaleX,
+            y: relY * scaleY,
+            r: radius * Math.max(scaleX, scaleY)
+          };
+
+          const bRect = badge.getBoundingClientRect();
+          const bRelX = bRect.left - tRect.left;
+          const bRelY = bRect.top - tRect.top;
+          badgeCanvasRect = {
+            x: bRelX * scaleX,
+            y: bRelY * scaleY,
+            w: bRect.width * scaleX,
+            h: bRect.height * scaleY
+          };
+          console.log('Overlay-Positions:', { indicatorCanvasPos, badgeCanvasRect });
+        } catch (e) {
+          console.warn('Konnte Indicator-Position nicht berechnen, verwende Standardposition.', e);
+          indicatorCanvasPos = {
+            x: frameCanvas.width * 0.75,
+            y: frameCanvas.height * 0.72,
+            r: Math.min(frameCanvas.width, frameCanvas.height) * 0.012
+          };
+          badgeCanvasRect = {
+            x: frameCanvas.width * 0.68,
+            y: frameCanvas.height * 0.03,
+            w: frameCanvas.width * 0.25,
+            h: frameCanvas.height * 0.08
+          };
+        }
+        
+        // Prüfe verfügbare MIME-Types für Instagram-Kompatibilität
+        const supportedTypes = [
+          'video/mp4;codecs=h264',
+          'video/mp4;codecs=avc1',
+          'video/mp4',
+          'video/webm;codecs=h264',
+          'video/webm;codecs=vp9',
+          'video/webm'
+        ];
+        
+        let selectedMimeType = 'video/webm'; // Fallback
+        for (const type of supportedTypes) {
+          if (MediaRecorder.isTypeSupported(type)) {
+            selectedMimeType = type;
+            console.log('Verwende MIME-Type:', type);
+            break;
+          }
+        }
+        
+        // Video ohne Audio - einfacher und stabiler
+        mediaRecorder = new MediaRecorder(stream, {
+          mimeType: selectedMimeType,
+          videoBitsPerSecond: 2000000 // 2 Mbps für flüssige Animation
+        });
+        
+        console.log('Video-Recording ohne Audio gestartet mit', selectedMimeType);
+        
+        mediaRecorder.ondataavailable = e => {
+          if (e.data.size > 0) {
+            videoChunks.push(e.data);
+          }
+        };
+        
+        mediaRecorder.onstop = () => {
+          const actualDuration = (Date.now() - recordingStartTime) / 1000;
+          console.log(`Recording gestoppt nach ${actualDuration.toFixed(1)}s, Chunks: ${videoChunks.length}`);
+          
+          // Clear alle Timer
+          if (recordingTimer) {
+            clearInterval(recordingTimer);
+            recordingTimer = null;
+          }
+          
+          // Video-Blob erstellen
+          const blobType = selectedMimeType.split(';')[0];
+          const videoBlob = new Blob(videoChunks, { type: blobType });
+          
+          const fileSizeMB = videoBlob.size / 1024 / 1024;
+          console.log(`Animiertes Video erstellt: ${actualDuration.toFixed(1)}s, ${fileSizeMB.toFixed(1)}MB, Type: ${videoBlob.type}`);
+          
+          const videoUrl = URL.createObjectURL(videoBlob);
+          const isMp4 = videoBlob.type === 'video/mp4';
+          const ext = isMp4 ? 'mp4' : 'webm';
+          dlMp4.href = videoUrl;
+          dlMp4.download = `instagram_post_animated_${Math.round(actualDuration)}s.${ext}`;
+          dlMp4.textContent = isMp4 ? '📱 Download Instagram MP4 (H.264)' : '📱 Download Instagram WEBM';
+          dlMp4.title = isMp4 ? 'MP4 (H.264) wurde erstellt' : 'Dein Browser unterstützt MP4-Aufnahme nicht direkt – WEBM wurde erstellt';
+          videoPreview.src = videoUrl;
+          
+          // Video-Info anzeigen
+          videoInfo.textContent = `${actualDuration.toFixed(1)}s, ${fileSizeMB.toFixed(1)}MB (${videoBlob.type}) - Animiert`;
+          
+          // Video-Element Event-Listener für finale Prüfung
+          videoPreview.addEventListener('loadedmetadata', () => {
+            const videoDuration = videoPreview.duration;
+            console.log('📱 Instagram-Check:', {
+              duration: videoDuration.toFixed(1) + 's',
+              size: fileSizeMB.toFixed(1) + 'MB',
+              width: videoPreview.videoWidth,
+              height: videoPreview.videoHeight,
+              instagramOK: (videoDuration <= 60 && fileSizeMB <= 100) ? '✅ Ja' : '❌ Nein'
+            });
+            
+            if (videoDuration > 60) {
+              statusEl.textContent = `⚠️ Video zu lang (${videoDuration.toFixed(1)}s) für Instagram!`;
+              videoInfo.textContent += ' ⚠️ ZU LANG für Instagram';
+            } else if (videoDuration <= 4.5) {
+              statusEl.textContent = `✅ Instagram-ready! ${videoDuration.toFixed(1)}s MP4`;
+              videoInfo.textContent += ' ✅ Instagram OK';
+            }
+          });
+          
+          result.classList.remove('hidden');
+          progressContainer.classList.add('hidden');
+          isRecording = false;
+          
+          // Auto-Download nur für das Video (zweiter paralleler Download wird oft geblockt)
+          setTimeout(() => {
+            try { dlMp4.click(); } catch(_) {}
+          }, 400);
+        };
+        
+        // Recording für EXAKT 4 Sekunden starten
+        recordingStartTime = Date.now();
+        mediaRecorder.start(100); // 100ms Chunks für flüssige Animation
+        console.log('🎬 Animiertes Recording gestartet - MP4 ohne Audio für Instagram');  const maxDuration = 4000; // 4 Sekunden MAXIMUM
+        let frameIndex = 0;
+        
+        // Timer für Progress-Updates
+        recordingTimer = setInterval(() => {
+          const elapsed = Date.now() - recordingStartTime;
+          
+          if (elapsed >= maxDuration) {
+            // STOPP nach 4 Sekunden
+            clearInterval(recordingTimer);
+            recordingTimer = null;
+            
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+              console.log('⏰ STOPP - 4 Sekunden erreicht');
+              mediaRecorder.stop();
+            }
+            return;
+          }
+          
+          const progress = Math.min(elapsed / maxDuration, 1) * 70 + 30; // 30-100%
+          progressBar.style.width = progress + '%';
+          progressText.textContent = `${Math.round(progress)}% - MP4: ${(elapsed/1000).toFixed(1)}s / 4.0s`;
+          statusEl.textContent = `Instagram MP4: ${(elapsed/1000).toFixed(1)}s / 4.0s`;
+        }, 100);
+        
+        // Animation für Video-Content – läuft unabhängig vom Recorder-State und ist deutlich sichtbar
+        const animate = () => {
+          const elapsed = Date.now() - recordingStartTime;
+          const time = Math.max(0, elapsed) / 1000;
+
+          // Nächsten Frame IMMER planen (sonst kann der Start-Zustand verpasst werden)
+          requestAnimationFrame(animate);
+
+          if (elapsed >= maxDuration) return;
+
+          // Statischer Hintergrund (keine Bewegung)
+          const grd = videoCtx.createLinearGradient(0, 0, W, H);
+          grd.addColorStop(0,'#232526');
+          grd.addColorStop(0.3,'#2a3439');
+          grd.addColorStop(0.7,'#1e2a38');
+          grd.addColorStop(1,'#1a252f');
+          videoCtx.fillStyle = grd;
+          videoCtx.fillRect(0,0,W,H);
+
+          // Animationszeit nur für Puls der Symbole
+          const animTime = time * 2;
+
+          // Statisches Bild des Posts (keine Bewegung/Rotation)
+          const baseScale = Math.min(W * 0.9 / frameCanvas.width, H * 0.75 / frameCanvas.height);
+          const animScale = baseScale;
+          const drawW = frameCanvas.width * animScale;
+          const drawH = frameCanvas.height * animScale;
+          const dx = (W - drawW) / 2;
+          const dy = (H - drawH) / 2;
+
+          videoCtx.save();
+          videoCtx.drawImage(frameCanvas, dx, dy, drawW, drawH);
+
+          // Blinkender Live-Indikator direkt im Canvas (überlagert das statische Bild)
+          if (indicatorCanvasPos) {
+            const pulse = 0.65 + 0.35 * (0.5 + 0.5 * Math.sin(animTime * Math.PI * 1.5));
+            const ix = dx + indicatorCanvasPos.x * animScale;
+            const iy = dy + indicatorCanvasPos.y * animScale;
+            const ir = indicatorCanvasPos.r * animScale * (0.9 + 0.35 * Math.sin(animTime * 2));
+
+            // Außen-Glow
+            videoCtx.save();
+            videoCtx.globalAlpha = 0.6 * pulse;
+            videoCtx.fillStyle = '#ff6b6b';
+            videoCtx.shadowColor = '#ff4757';
+            videoCtx.shadowBlur = 18;
+            videoCtx.beginPath();
+            videoCtx.arc(ix, iy, ir * 1.6, 0, Math.PI * 2);
+            videoCtx.fill();
+            videoCtx.restore();
+
+            // Kernpunkt
+            videoCtx.save();
+            videoCtx.globalAlpha = 0.9;
+            videoCtx.fillStyle = '#ff4757';
+            videoCtx.beginPath();
+            videoCtx.arc(ix, iy, ir, 0, Math.PI * 2);
+            videoCtx.fill();
+            videoCtx.restore();
+          }
+
+          // Pulsierender Glow um das HEUTE-Badge
+          if (badgeCanvasRect) {
+            const bx = dx + (badgeCanvasRect.x + badgeCanvasRect.w / 2) * animScale;
+            const by = dy + (badgeCanvasRect.y + badgeCanvasRect.h / 2) * animScale;
+            const rx = (badgeCanvasRect.w * animScale) / 2;
+            const ry = (badgeCanvasRect.h * animScale) / 2;
+            const glow = 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(animTime * 1.2));
+
+            // Außen-Glow (ellipse)
+            videoCtx.save();
+            videoCtx.globalAlpha = 0.35 * glow;
+            videoCtx.fillStyle = '#ffd93d';
+            videoCtx.shadowColor = '#ffd93d';
+            videoCtx.shadowBlur = 24;
+            videoCtx.beginPath();
+            videoCtx.ellipse(bx, by, rx * 1.25, ry * 1.3, 0, 0, Math.PI * 2);
+            videoCtx.fill();
+            videoCtx.restore();
+
+            // Leichte Kontur
+            videoCtx.save();
+            videoCtx.globalAlpha = 0.5 * glow;
+            videoCtx.strokeStyle = '#ffe680';
+            videoCtx.lineWidth = 3;
+            videoCtx.beginPath();
+            videoCtx.ellipse(bx, by, rx * 1.05, ry * 1.08, 0, 0, Math.PI * 2);
+            videoCtx.stroke();
+            videoCtx.restore();
+          }
+
+          videoCtx.restore();
+
+          // Partikel/Lichteffekte – mehr und etwas größer
+          const particleCount = 12;
+          for (let i = 0; i < particleCount; i++) {
+            const particleTime = animTime + i * 0.9;
+            const x = (Math.sin(particleTime) * 0.35 + 0.5) * W;
+            const y = (Math.cos(particleTime * 0.7) * 0.35 + 0.5) * H;
+            const alpha = 0.08 + 0.18 * (0.5 + 0.5 * Math.sin(particleTime * 2));
+
+            videoCtx.save();
+            videoCtx.globalAlpha = alpha;
+            videoCtx.fillStyle = '#ffd700';
+            videoCtx.beginPath();
+            videoCtx.arc(x, y, 4, 0, Math.PI * 2);
+            videoCtx.fill();
+            videoCtx.restore();
+          }
+        };
+        
+        animate();
+        
+      } catch(e) {
+        console.error('MP4 Fehler:', e);
+        statusEl.textContent = 'MP4 Fehler: ' + e.message;
+        progressContainer.classList.add('hidden');
+        isRecording = false;
+      }
+    }
+    
+    function forceRestart() {
+      // Stoppe alle laufenden Prozesse
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
+      if (recordingTimer) {
+        clearInterval(recordingTimer);
+        recordingTimer = null;
+      }
+      
+      isRecording = false;
+      const statusEl=document.getElementById('status');
+      const spinner=document.getElementById('spinner');
+      const progressContainer=document.getElementById('progressContainer');
+      const result=document.getElementById('result');
+      const startBtn=document.getElementById('startBtn');
+      
+      statusEl.textContent = 'Wird zurückgesetzt...';
+      
+      spinner.classList.remove('hidden');
+      progressContainer.classList.add('hidden');
+      result.classList.add('hidden');
+      startBtn.style.display = 'inline-block';
+      
+      setTimeout(() => {
+        location.reload();
+      }, 500);
+    }
+    
+    window.addEventListener('error', function(e) {
+      console.error('Globaler Fehler:', e);
+      const statusEl=document.getElementById('status');
+      statusEl.textContent = 'Unerwarteter Fehler - bitte neu starten';
+      isRecording = false;
+    });
+    
+    window.addEventListener('load', ()=>{ 
+      console.log('🎬 Instagram H.264 MP4 Generator bereit');
+      
+      // Zeige verfügbare MIME-Types
+      const types = ['video/mp4;codecs=h264', 'video/mp4', 'video/webm;codecs=h264', 'video/webm'];
+      console.log('Verfügbare Video-Formate:');
+      types.forEach(type => {
+        console.log(`${type}: ${MediaRecorder.isTypeSupported(type) ? '✅' : '❌'}`);
+      });
+    });
+  </script>
+</body>
+</html>
